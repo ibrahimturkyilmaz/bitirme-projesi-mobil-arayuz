@@ -57,26 +57,25 @@ Projenin kaynak kodları, sürdürülebilirlik ilkeleri gözetilerek modüler bi
 
 ---
 
-## 6. Gelecek Güncellemeler ve Veritabanı Entegrasyonu
+## 6. Gelecek Güncellemeler ve Veri Entegrasyon Stratejisi
 
-Projenin bir sonraki aşamasında, mevcut "statik veri" yapısından dinamik ve ölçeklenebilir bir "veritabanı destekli" mimariye geçiş hedeflenmektedir. Bu dönüşümün temel yapı taşları şunlardır:
+Projenin bir sonraki fazında, veri yönetimi için "Statik Veri, Dinamik Etkileşim" (Static Data, Dynamic Interaction) mimarisi benimsenmiştir. Bu yapı, hem yüksek performans hem de çevrimdışı çalışma yeteneği sunmaktadır.
 
-### 6.1. Veritabanı Mimarisi (MS SQL Server)
-Projenin backend altyapısında **Microsoft SQL Server** konumlandırılacaktır. İlişkisel veritabanı yapısı sayesinde veri tutarlılığı ve karmaşık sorgulama yetenekleri kazanılacaktır.
-*   **Veri Modeli:**
-    *   `Stores` (Mağazalar): Mağaza adı, benzersiz ID ve görsel verileri.
-    *   `Locations` (Konumlar): Her mağazanın coğrafi koordinatları (`Latitude`, `Longitude`) ve kapsama alanı yarıçapı (`Radius`).
-    *   `Campaigns` (Kampanyalar): Belirli bir konuma veya mağazaya bağlı promosyon mesajları ve geçerlilik süreleri.
+### 6.1. Veri Kaynağı ve Aktarım Döngüsü (MS SQL to App)
+Verilerin ana kaynağı (Single Source of Truth) olarak **Microsoft SQL Server** kullanılmaya devam edilecektir.
+*   **Veri Yönetimi:** Mağaza koordinatları, kampanya metinleri ve geofence yarıçapları SQL sunucusu üzerinde merkezi olarak yönetilir.
+*   **Entegrasyon Yöntemi (Build-Time Integration):** Uygulama dağıtıma çıkılmadan önce, SQL veritabanındaki güncel veriler bir "Export Script" aracılığıyla **JSON** formatına dönüştürülür ve proje kaynak kodlarına (`src/data/stores.json`) dahil edilir. Bu sayede veritabanı güvenliği riske atılmadan veriler güvenli bir şekilde uygulamaya taşınır.
 
-### 6.2. Dinamik Konum Verisi Yönetimi
-Mevcut sistemde kod içine gömülü (hardcoded) olan koordinat verileri, dinamik olarak veritabanından çekilecektir.
-*   **Akış:**
-    1.  Uygulama açıldığında veya kullanıcı hareket ettiğinde, backend servisine kullanıcının o anki konumu gönderilecektir.
-    2.  Veritabanında **Spatial Query** (Mekansal Sorgu) çalıştırılarak, kullanıcıya örneğin 1km yakınlıktaki aktif kampanyalar filtrelenecektir.
-    3.  Sunucudan dönen JSON formatındaki veri (`{id, lat, lng, message, discount_rate}`), uygulamanın `Context` yapısına beslenerek arayüzün anlık güncellenmesi sağlanacaktır.
+### 6.2. İstemci Taraflı Konum İşleme (Client-Side Geofencing)
+Sunucu tabanlı (Server-Side) sorgulamaların getirdiği ağ gecikmesini (latency) ortadan kaldırmak için coğrafi hesaplamalar kullanıcının cihazında yapılır.
+*   **Algoritma:** Uygulama açılışta güncel kampanya/mağaza listesini (JSON) belleğe yükler. Kullanıcı hareket ettikçe, cihazın işlemcisi (CPU) kullanılarak anlık konum ile mağazalar arasındaki mesafe sürekli hesaplanır (Haversine Formülü).
+*   **Çevrimdışı Yetenek:** Veriler cihazda yerel olarak saklandığı için, kullanıcı internet kapsama alanı dışında olsa dahi ( metro, bodrum kat vb.) mağazaya yaklaştığında bildirim alabilir.
 
-### 6.3. Backend API Geliştirmesi
-Frontend ile MS SQL veritabanı arasında köprü görevi görecek bir RESTful API geliştirilecektir. Bu API, güvenli veri transferini sağlayacak ve GitHub Pages üzerinde çalışan arayüzün, sunucudaki canlı verilere erişmesine olanak tanıyacaktır.
+### 6.3. Hibrit Mimari Avantajları
+Bu mimari yaklaşım ile:
+1.  **Sıfır Sunucu Maliyeti:** Canlı bir API sunucusu barındırma ve bakım maliyeti ortadan kalkar.
+2.  **Yüksek Performans:** Ağ isteği (Network Request) olmadığı için bildirimler gecikmesiz çalışır.
+3.  **Güvenlik:** Veritabanı internete açık olmadığı için siber saldırı yüzeyi minimize edilir.
 
 ---
 **Rapor Tarihi:** 18 Aralık 2025
