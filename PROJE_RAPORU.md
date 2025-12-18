@@ -20,17 +20,22 @@ Geleneksel paketleyicilerin (Webpack) getirdiği performans maliyetlerini minimi
 Tasarım dili olarak, "Utility-First" yaklaşımını benimseyen **Tailwind CSS** kullanılmıştır. Bu yaklaşım, CSS dosya boyutunu (bundle size) minimize ederken, tutarlı bir tasarım sistemi oluşturulmasına olanak tanır.
 *   **Etkileşim:** Mobil uygulama hissiyatını (Native Feel) artırmak amacıyla, fizik tabanlı animasyon kütüphanesi olan **Framer Motion** entegre edilmiştir.
 
+### 2.4. Dağıtım ve DevOps (CI/CD): **GitHub Pages & Actions**
+Projenin sürekli entegrasyonu ve dağıtımı (CI/CD) için **GitHub Actions** altyapısı kurulmuştur.
+*   **Otomasyon:** Ana koda (main branch) yapılan her güncelleme (`push`), otomatik olarak bir derleme (build) süreci başlatır.
+*   **Hosting:** Derlenen statik dosyalar, **GitHub Pages** üzerinde ücretsiz ve güvenli (HTTPS) bir şekilde barındırılarak son kullanıcının erişimine sunulur. Bu yapı, sunucu maliyetini ortadan kaldırır ve yüksek erişilebilirlik sağlar.
+
 ---
 
 ## 3. Konum Tabanlı Servisler (Location Based Services)
 
 ### 3.1. Coğrafi Konumlandırma Protokolü: **HTML5 Geolocation API**
 Kullanıcının anlık konumunun tespiti için W3C standardı olan **HTML5 Geolocation API** kullanılmıştır.
-*   **Metodoloji:** IP tabanlı konumlandırmanın (yüksek hata payı nedeniyle) aksine, GPS, Wi-Fi ve baz istasyonu verilerini hibrit işleyen `navigator.geolocation` arayüzü tercih edilmiştir. Bu yöntem, perakende senaryoları için kritik olan metre bazlı hassasiyeti (High Accuracy) sağlamaktadır.
+*   **Metodoloji:** IP tabanlı konumlandırmanın aksine; GPS, Wi-Fi ve baz istasyonu verilerini hibrit işleyen `navigator.geolocation` arayüzü tercih edilmiştir.
 
-### 3.2. Tersine Coğrafi Kodlama (Reverse Geocoding): **OpenStreetMap (Nominatim)**
-Elde edilen ham enlem/boylam verilerinin, kullanıcı tarafından anlamlandırılabilir adres metinlerine (İlçe, İl) dönüştürülmesi işlemidir.
-*   **Yöntem:** Açık kaynaklı ve topluluk destekli **OpenStreetMap Nominatim API** servisi asenkron mimari ile entegre edilmiştir.
+### 3.2. Geofencing ve Bildirim Yönetimi
+Kullanıcının belirli bir coğrafi alana (mağaza çevresi) girmesi durumunda tetiklenen bildirim mekanizmasıdır.
+*   **Uygulama:** Her 5 saniyede bir kullanıcının konumu ile hedef noktalar arasındaki mesafe "Haversine Formülü" ile hesaplanır. Mesafe belirlenen yarıçapın (örn. 500m) altına düştüğünde kullanıcıya görsel bildirim (`NotificationOverlay`) gösterilir.
 
 ---
 
@@ -38,52 +43,41 @@ Elde edilen ham enlem/boylam verilerinin, kullanıcı tarafından anlamlandırı
 
 ### 4.1. Durum Yönetimi Stratejisi (State Management): **Context API**
 Uygulamanın veri akışı, React'in yerleşik **Context API** mekanizması üzerine kurgulanmıştır.
-*   **UserContext:** Kullanıcı profil ve oturum verilerinin yönetimi.
-*   **LocationContext:** GPS verilerinin ve izin durumlarının merkezi yönetimi.
-*   **Mimari Karar:** Redux gibi harici kütüphanelerin getirdiği kod karmaşıklığı (boilerplate) ve işlem maliyeti, projenin ölçeği göz önüne alındığında gereksiz bulunmuş; Context API ile daha hafif (lightweight) bir yapı kurulmuştur.
+*   **UserContext:** Kullanıcı profil ve tercihlerin yönetimi.
+*   **LocationContext:** GPS verileri, izin durumları ve geofence tetikleyicilerinin merkezi yönetimi.
 
-### 4.2. Servis Yönelimli Katman (Service Layer Pattern)
-İş mantığı (Business Logic) ile sunum katmanı (Presentation Layer) birbirinden izole edilmiştir. `src/services/api.js` ve özel kancalar (hooks), veriye erişimi soyutlayarak kodun test edilebilirliğini ve bakımını kolaylaştırmaktadır.
+### 4.2. Servis Yönelimli Katman
+İş mantığı (Business Logic) ile sunum katmanı (Presentation Layer) birbirinden izole edilmiştir. `src/services/api.js` üzerinden sağlanan veri akışı, ileride yapılacak veritabanı entegrasyonu için bir soyutlama katmanı görevi görür.
 
 ---
 
 ## 5. Proje Klasör Yapısı (Folder Structure)
 
-Projenin kaynak kodları, sürdürülebilirlik ve modülerlik ilkeleri gözetilerek aşağıdaki hiyerarşide düzenlenmiştir:
-
-```
-src/
-├── components/          # Kullanıcı arayüzü bileşenleri
-│   ├── layout/          # Sayfa düzeni (örn: BottomNav)
-│   ├── screens/         # Ana ekranlar (Home, Profile, Shop)
-│   └── ui/              # Atomik bileşenler (StatusBar, Notification)
-├── context/             # Global durum yönetimi (UserContext, LocationContext)
-├── hooks/               # Özel fonksiyonlar (useGeofencing)
-├── services/            # Dış servisler ve API bağlantıları
-├── utils/               # Yardımcı araçlar (Geocoding, Mesafe Hesaplama)
-├── data/                # Simülasyon verileri (mockData)
-├── App.jsx              # Ana uygulama kapsayıcısı
-└── main.jsx             # React giriş noktası
-```
-
-Bu yapı, "Separation of Concerns" (İlgi Alanlarının Ayrımı) prensibine uygun olarak; Görüntü (View), Mantık (Logic) ve Veri (Data) katmanlarını fiziksel klasörlerde de birbirinden ayırmaktadır.
+Projenin kaynak kodları, sürdürülebilirlik ilkeleri gözetilerek modüler bir yapıda (Screens, Components, Contexts, Services) düzenlenmiştir.
 
 ---
 
-## 6. Sonuç ve Gelecek Çalışmalar İçin Öneriler
+## 6. Gelecek Güncellemeler ve Veritabanı Entegrasyonu
 
-Mevcut prototip, temel konum tabanlı işlevleri başarıyla yerine getirmektedir. Ancak uygulamanın endüstriyel standartlarda bir ürüne (Production Ready) dönüştürülmesi için aşağıdaki geliştirmeler önerilmektedir:
+Projenin bir sonraki aşamasında, mevcut "statik veri" yapısından dinamik ve ölçeklenebilir bir "veritabanı destekli" mimariye geçiş hedeflenmektedir. Bu dönüşümün temel yapı taşları şunlardır:
 
-### 6.1. Sunucu Tarafı ve Veri Kalıcılığı (Backend Integration)
-Mevcut sistemde kullanılan simüle edilmiş verilerin (Mock Data), ölçeklenebilir bir veritabanı mimarisine (PostgreSQL veya NoSQL tabanlı Firebase/MongoDB) taşınması gerekmektedir. Bu, çoklu kullanıcı desteği ve dinamik stok yönetimi için elzemdir.
+### 6.1. Veritabanı Mimarisi (MS SQL Server)
+Projenin backend altyapısında **Microsoft SQL Server** konumlandırılacaktır. İlişkisel veritabanı yapısı sayesinde veri tutarlılığı ve karmaşık sorgulama yetenekleri kazanılacaktır.
+*   **Veri Modeli:**
+    *   `Stores` (Mağazalar): Mağaza adı, benzersiz ID ve görsel verileri.
+    *   `Locations` (Konumlar): Her mağazanın coğrafi koordinatları (`Latitude`, `Longitude`) ve kapsama alanı yarıçapı (`Radius`).
+    *   `Campaigns` (Kampanyalar): Belirli bir konuma veya mağazaya bağlı promosyon mesajları ve geçerlilik süreleri.
 
-### 6.2. Çevrimdışı Çalışma Yeteneği (Offline-First Architecture)
-Progressive Web App (PWA) standartlarının tam uygulanması önerilir. `Service Worker` stratejileri geliştirilerek, internet bağlantısının koptuğu durumlarda (Caching) uygulamanın temel fonksiyonlarının çalışmaya devam etmesi sağlanmalıdır.
+### 6.2. Dinamik Konum Verisi Yönetimi
+Mevcut sistemde kod içine gömülü (hardcoded) olan koordinat verileri, dinamik olarak veritabanından çekilecektir.
+*   **Akış:**
+    1.  Uygulama açıldığında veya kullanıcı hareket ettiğinde, backend servisine kullanıcının o anki konumu gönderilecektir.
+    2.  Veritabanında **Spatial Query** (Mekansal Sorgu) çalıştırılarak, kullanıcıya örneğin 1km yakınlıktaki aktif kampanyalar filtrelenecektir.
+    3.  Sunucudan dönen JSON formatındaki veri (`{id, lat, lng, message, discount_rate}`), uygulamanın `Context` yapısına beslenerek arayüzün anlık güncellenmesi sağlanacaktır.
 
-### 6.3. Performans ve Güvenlik
-*   **Görsel Optimizasyonu:** WebP formatı ve CDN (Content Delivery Network) kullanımı ile yükleme süreleri optimize edilmelidir.
-*   **Hata Toleransı:** Harita servislerinin yanıt vermediği durumlar için "Circuit Breaker" desenleri uygulanmalıdır.
+### 6.3. Backend API Geliştirmesi
+Frontend ile MS SQL veritabanı arasında köprü görevi görecek bir RESTful API geliştirilecektir. Bu API, güvenli veri transferini sağlayacak ve GitHub Pages üzerinde çalışan arayüzün, sunucudaki canlı verilere erişmesine olanak tanıyacaktır.
 
 ---
-**Rapor Tarihi:** 17 Aralık 2025
+**Rapor Tarihi:** 18 Aralık 2025
 **Geliştirici:** Antigravity AI Takımı
