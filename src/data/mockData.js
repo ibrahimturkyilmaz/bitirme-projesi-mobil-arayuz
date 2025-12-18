@@ -53,6 +53,14 @@ export const STORES = [
         lng: 29.0298,
         address: "Caferağa Mah. Bahariye Cad. No:24, Kadıköy/İstanbul",
         features: ["Vintage Corner", "Alteration"]
+    },
+    {
+        id: "store_003",
+        name: "Rumeli Üniversitesi (Demo)",
+        lat: 41.044218,
+        lng: 28.947511,
+        address: "İstanbul Rumeli Üniversitesi, Haliç Yerleşkesi",
+        features: ["Kampüs İndirimi", "Kitap Kafe"]
     }
 ];
 
