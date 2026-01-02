@@ -1,9 +1,19 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Bell, ArrowRight, Home, Search, Play, Zap } from 'lucide-react';
+import { HomeSkeleton } from '../common/Skeleton';
 
-export default function HomeScreen({ user, onSimulateEnter, onSimulateInStore }) {
-    if (!user) return <div className="p-6">Yükleniyor...</div>;
+export default function HomeScreen({ user, onSimulateEnter, onSimulateInStore, onNavigateToShop }) {
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        // Simulate loading delay
+        const timer = setTimeout(() => setIsLoading(false), 2000);
+        return () => clearTimeout(timer);
+    }, []);
+
+    if (!user) return <HomeSkeleton />; // Initial user check
+    if (isLoading) return <HomeSkeleton />;
 
     const categories = [
         { id: 1, name: 'Yeni Gelenler', icon: <Zap size={20} className="text-orange-500" />, color: 'bg-orange-100' },
@@ -51,54 +61,75 @@ export default function HomeScreen({ user, onSimulateEnter, onSimulateInStore })
                 </div>
             </div>
 
-            {/* Categories */}
-            <div className="grid grid-cols-4 gap-2">
+            {/* Categories - Swipeable Story Mode */}
+            <div className="flex gap-4 overflow-x-auto pb-4 -mx-6 px-6 scrollbar-hide">
                 {categories.map((cat) => (
-                    <div key={cat.id} className="flex flex-col items-center gap-2">
-                        <div className={`w-16 h-16 rounded-full ${cat.color} flex items-center justify-center border-4 border-white shadow-sm`}>
-                            {cat.icon}
+                    <div key={cat.id} className="flex flex-col items-center gap-2 shrink-0">
+                        <div className="relative">
+                            {/* Gradient Ring */}
+                            <motion.div
+                                animate={cat.name === 'Live' ? { rotate: 360 } : {}}
+                                transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                                className={`w-[72px] h-[72px] rounded-full p-[3px] ${cat.name === 'Live'
+                                    ? 'bg-gradient-to-tr from-red-500 via-purple-500 to-orange-500' // Live Ring
+                                    : 'bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500' // Standard Ring
+                                    }`}
+                            >
+                                <div className="w-full h-full bg-white rounded-full p-1">
+                                    <div className={`w-full h-full rounded-full ${cat.color} flex items-center justify-center relative overflow-hidden`}>
+                                        {cat.icon}
+                                    </div>
+                                </div>
+                            </motion.div>
+
+                            {/* "LIVE" Badge */}
+                            {cat.name === 'Live' && (
+                                <motion.div
+                                    animate={{ scale: [1, 1.2, 1] }}
+                                    transition={{ duration: 1.5, repeat: Infinity }}
+                                    className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-red-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full border-2 border-white shadow-sm z-10"
+                                >
+                                    CANLI
+                                </motion.div>
+                            )}
                         </div>
-                        <span className="text-[10px] font-medium text-gray-600 text-center">{cat.name}</span>
+                        <span className="text-[11px] font-medium text-gray-700 text-center">{cat.name}</span>
                     </div>
                 ))}
-            </div>
-
-            {/* Custom Scroll Indicator Detail */}
-            <div className="flex items-center justify-between gap-4 px-4 mt-2">
-                <div className="w-0 h-0 border-t-[8px] border-t-transparent border-r-[12px] border-r-gray-500 border-b-[8px] border-b-transparent transform rotate-180 opacity-60"></div>
-                <div className="h-4 bg-gray-400/50 rounded-full flex-1 max-w-[200px] mx-auto relative overflow-hidden">
-                    <div className="absolute left-0 top-0 h-full w-1/2 bg-gray-500 rounded-full"></div>
-                </div>
-                <div className="w-0 h-0 border-t-[8px] border-t-transparent border-l-[12px] border-l-gray-500 border-b-[8px] border-b-transparent opacity-60"></div>
             </div>
 
             {/* Recommended Section */}
             <section>
                 <div className="flex justify-between items-end mb-4">
                     <h2 className="text-lg font-bold text-gray-900">Sizin İçin Seçildi</h2>
-                    <button className="text-xs text-indigo-600 font-semibold">Tümünü Gör</button>
+                    <button
+                        onClick={onNavigateToShop}
+                        className="text-xs text-indigo-600 font-semibold hover:text-indigo-800 transition-colors"
+                    >
+                        Tümünü Gör
+                    </button>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                     {/* Product Card 1 */}
                     <div className="bg-white rounded-2xl border border-gray-100 p-3 shadow-sm relative">
-                        <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-[10px] font-bold shadow-sm">
+                        <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-[10px] font-bold shadow-sm z-10">
                             Yüksek İhtimal
                         </span>
-                        <div className="aspect-square bg-orange-50 rounded-xl mb-3 flex items-center justify-center">
-                            <img src="https://cdn-icons-png.flaticon.com/512/2806/2806144.png" className="w-20 h-20 object-contain mix-blend-multiply" alt="Jacket" />
+                        <div className="aspect-square rounded-xl mb-3 overflow-hidden bg-gray-100 flex items-center justify-center p-2">
+                            <img src="./images/leather_jacket.png" className="w-full h-full object-contain mix-blend-multiply" alt="Jacket" />
                         </div>
-                        <h4 className="font-bold text-gray-800 text-sm">Vintage Deri Ce...</h4>
+                        <h4 className="font-bold text-gray-800 text-sm">Vintage Deri Ceket</h4>
                         <p className="text-indigo-600 font-bold text-sm mt-1">4.500 ₺</p>
                     </div>
 
                     {/* Product Card 2 */}
                     <div className="bg-white rounded-2xl border border-gray-100 p-3 shadow-sm relative">
-                        <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-[10px] font-bold shadow-sm">
+                        <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-[10px] font-bold shadow-sm z-10">
                             %20 İndirim
                         </span>
-                        <div className="aspect-square bg-blue-50 rounded-xl mb-3 flex items-center justify-center">
-                            <img src="https://cdn-icons-png.flaticon.com/512/2589/2589993.png" className="w-20 h-20 object-contain mix-blend-multiply" alt="Shirt" />
+                        <div className="aspect-square rounded-xl mb-3 overflow-hidden bg-gray-100 flex items-center justify-center p-2">
+                            <img src="./images/slim_fit_tshirt.png" className="w-full h-full object-contain mix-blend-multiply" alt="Shirt" />
                         </div>
                         <h4 className="font-bold text-gray-800 text-sm">Slim Fit Gömlek</h4>
                         <p className="text-indigo-600 font-bold text-sm mt-1">899 ₺</p>

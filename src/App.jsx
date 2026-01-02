@@ -1,42 +1,68 @@
 import { useState, useEffect } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import BottomNav from './components/layout/BottomNav';
 import HomeScreen from './components/screens/HomeScreen';
 import ShopScreen from './components/screens/ShopScreen';
 import ProfileScreen from './components/screens/ProfileScreen';
 import NotificationOverlay from './components/ui/NotificationOverlay';
 import StatusBar from './components/ui/StatusBar';
-import { api } from './services/api';
+import SplashScreen from './components/ui/SplashScreen';
+import LoginScreen from './components/screens/LoginScreen';
+import FavoritesScreen from './components/screens/FavoritesScreen';
+import CartScreen from './components/screens/CartScreen';
+// import { api } from './services/api'; // Legacy API removed
+import { mockProducts, mockStores } from './data/mockData';
 import { useGeofencing } from './hooks/useGeofencing';
 import { LocationProvider } from './context/LocationContext';
 import { UserProvider, useUser } from './context/UserContext';
+import { CartProvider } from './context/CartContext';
+import { FavoritesProvider } from './context/FavoritesContext';
 
 function MainLayout() {
-  const { user, loading: userLoading } = useUser();
+  const { user, login, loading } = useUser();
   const [activeTab, setActiveTab] = useState('home');
   const [products, setProducts] = useState([]);
   const [stores, setStores] = useState([]);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
-  // Custom Hook now consumes LocationContext internally
+  // App Flow State
+  const [showSplash, setShowSplash] = useState(false);
+  const [showLogin, setShowLogin] = useState(true);
+
   const { notification, dismissNotification, simulateEnterRegion, simulateInStore } = useGeofencing(stores);
 
+  // Restore Session Logic
   useEffect(() => {
-    const initData = async () => {
-      const [productData, storeData] = await Promise.all([
-        api.fetchProducts(),
-        api.fetchStores()
-      ]);
-      setProducts(productData);
-      setStores(storeData);
+    if (!loading && user) {
+      setShowLogin(false);
+    }
+  }, [user, loading]);
+
+  useEffect(() => {
+    // Load local mock data
+    const initData = () => {
+      setProducts(mockProducts);
+      setStores(mockStores);
     };
 
     initData();
   }, []);
 
-  const renderScreen = () => {
-    // If user is loading, we could show a spinner here
-    // if (userLoading) return <div>Loading...</div>;
+  if (loading) {
+    return <div className="flex items-center justify-center min-h-screen bg-gray-50">Yükleniyor...</div>;
+  }
 
+  const handleLogin = (user) => {
+    login(user);
+    setShowLogin(false);
+    setShowSplash(true);
+  };
+
+  const handleSplashComplete = () => {
+    setShowSplash(false);
+  };
+
+  const renderScreen = () => {
     switch (activeTab) {
       case 'home':
         return (
@@ -44,10 +70,15 @@ function MainLayout() {
             user={user}
             onSimulateEnter={() => simulateEnterRegion('store_001')}
             onSimulateInStore={simulateInStore}
+            onNavigateToShop={() => setActiveTab('shop')}
           />
         );
       case 'shop':
         return <ShopScreen products={products} />;
+      case 'favorites':
+        return <FavoritesScreen />;
+      case 'cart':
+        return <CartScreen />;
       case 'profile':
         return (
           <ProfileScreen
@@ -60,6 +91,14 @@ function MainLayout() {
     }
   };
 
+  if (showLogin) {
+    return <LoginScreen onLogin={handleLogin} />;
+  }
+
+  if (showSplash) {
+    return <SplashScreen onComplete={handleSplashComplete} />;
+  }
+
   const statusBarTheme = activeTab === 'profile' ? 'dark' : 'light';
 
   return (
@@ -67,7 +106,9 @@ function MainLayout() {
       <NotificationOverlay notification={notification} onClose={dismissNotification} />
       <main className="max-w-md mx-auto min-h-screen bg-white shadow-2xl overflow-hidden relative">
         <StatusBar theme={statusBarTheme} />
-        {renderScreen()}
+        <AnimatePresence mode="wait">
+          {renderScreen()}
+        </AnimatePresence>
       </main>
       <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
     </div>
@@ -78,7 +119,11 @@ export default function App() {
   return (
     <UserProvider>
       <LocationProvider>
-        <MainLayout />
+        <CartProvider>
+          <FavoritesProvider>
+            <MainLayout />
+          </FavoritesProvider>
+        </CartProvider>
       </LocationProvider>
     </UserProvider>
   );

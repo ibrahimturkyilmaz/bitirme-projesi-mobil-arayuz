@@ -1,73 +1,68 @@
-export const PRODUCTS = [
+export const mockProducts = [
     {
         id: 1,
-        name: "Vintage Denim Jacket",
-        price: 1250,
-        currency: "TRY",
-        image: "https://images.unsplash.com/photo-1576871337622-98d48d1cf531?q=80&w=600&auto=format&fit=crop",
-        category: "Outerwear",
-        segment: "Vintage Lover"
+        name: "Premium Deri Ceket",
+        price: "₺2.499",
+        category: "Dış Giyim",
+        image: "./images/leather_jacket.png"
     },
     {
         id: 2,
-        name: "Oversized Beige Hoodie",
-        price: 850,
-        currency: "TRY",
-        image: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?q=80&w=600&auto=format&fit=crop",
-        category: "Tops",
-        segment: "Streetwear"
+        name: "Slim Fit T-Shirt",
+        price: "₺899",
+        category: "Üst Giyim",
+        image: "./images/slim_fit_tshirt.png"
     },
     {
         id: 3,
-        name: "Wide Leg Cargo Pants",
-        price: 950,
-        currency: "TRY",
-        image: "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?q=80&w=600&auto=format&fit=crop",
-        category: "Bottoms",
-        segment: "Streetwear"
+        name: "Basic Mevsimlik Ceket",
+        price: "₺1.299",
+        category: "Dış Giyim",
+        image: "./images/seasonal_jacket.png"
     },
     {
         id: 4,
-        name: "Leather Crossbody Bag",
-        price: 1500,
-        currency: "TRY",
-        image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=600&auto=format&fit=crop",
-        category: "Accessories",
-        segment: "Casual"
+        name: "Sırt Çantası",
+        price: "₺1.299",
+        category: "Çanta",
+        image: "./images/backpack.png"
+    },
+    {
+        id: 5,
+        name: "Altın Kaplama Bileklik",
+        price: "₺4.499",
+        category: "Aksesuar",
+        image: "./images/gold_bracelet.png"
+    },
+    {
+        id: 6,
+        name: "Kadın Yağmurluk",
+        price: "₺649",
+        category: "Dış Giyim",
+        image: "./images/raincoat.png"
     }
 ];
 
-export const STORES = [
+export const mockStores = [
     {
-        id: "store_001",
-        name: "Nişantaşı Flagship",
+        id: 'store_001',
+        name: 'Nişantaşı Flagship',
         lat: 41.0522,
         lng: 28.9959,
-        address: "Teşvikiye Mah. Abdi İpekçi Cad. No:1, Şişli/İstanbul",
-        features: ["Stylist AI", "Espresso Bar"]
+        address: "Teşvikiye Mah. Vali Konağı Cad. No:1"
     },
     {
-        id: "store_002",
-        name: "Kadıköy Concept Store",
-        lat: 40.9901,
-        lng: 29.0298,
-        address: "Caferağa Mah. Bahariye Cad. No:24, Kadıköy/İstanbul",
-        features: ["Vintage Corner", "Alteration"]
+        id: 'store_002',
+        name: 'Kanyon AVM',
+        lat: 41.0782,
+        lng: 29.0116,
+        address: "Büyükdere Cad. No:185 Levent"
     },
     {
-        id: "store_003",
-        name: "Rumeli Üniversitesi (Demo)",
-        lat: 41.044218,
-        lng: 28.947511,
-        address: "İstanbul Rumeli Üniversitesi, Haliç Yerleşkesi",
-        features: ["Kampüs İndirimi", "Kitap Kafe"]
+        id: 'store_003',
+        name: 'Hilltown AVM',
+        lat: 40.9453,
+        lng: 29.1287,
+        address: "Aydınevler Mah. Siteler Yolu Cad."
     }
 ];
-
-export const USER_PROFILE = {
-    id: "u_12345",
-    name: "Ibrahim",
-    segment: "Vintage Lover",
-    tier: "Gold",
-    points: 2450
-};

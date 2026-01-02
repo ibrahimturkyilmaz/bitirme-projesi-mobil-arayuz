@@ -43,11 +43,13 @@ Kullanıcının belirli bir coğrafi alana (mağaza çevresi) girmesi durumunda 
 
 ### 4.1. Durum Yönetimi Stratejisi (State Management): **Context API**
 Uygulamanın veri akışı, React'in yerleşik **Context API** mekanizması üzerine kurgulanmıştır.
-*   **UserContext:** Kullanıcı profil ve tercihlerin yönetimi.
+*   **UserContext:** Kullanıcı profil ve tercihlerin yönetimi. (Veriler `localStorage` tabanlı kalıcı hale getirilmiştir)
 *   **LocationContext:** GPS verileri, izin durumları ve geofence tetikleyicilerinin merkezi yönetimi.
+*   **Kalıcılık (Persistence):** Sepet ve Favori verileri tarayıcının yerel hafızasına (Local Storage) anlık olarak kaydedilir. Bu sayede sayfa yenilense bile kullanıcı verileri kaybolmaz.
 
-### 4.2. Servis Yönelimli Katman
-İş mantığı (Business Logic) ile sunum katmanı (Presentation Layer) birbirinden izole edilmiştir. `src/services/api.js` üzerinden sağlanan veri akışı, ileride yapılacak veritabanı entegrasyonu için bir soyutlama katmanı görevi görür.
+### 4.2. Servis Yönelimli Katman (Service Layer)
+İş mantığı (Business Logic) ile sunum katmanı (Presentation Layer) birbirinden izole edilmiştir. `src/data/mockData.js` üzerinde tanımlı simüle edilmiş veri seti kullanılarak, gerçek bir backend mimarisine gerek kalmadan uygulamanın tüm fonksiyonları (Sepet, Favoriler, Listeleme) istemci tarafında çalıştırılmaktadır.
+*   **Avantajı:** Sunucu bağımlılığı olmadığı için uygulama GitHub Pages gibi statik sunucularda %100 performansla çalışır ve kesinti yaşanmaz.
 
 ---
 
@@ -57,26 +59,46 @@ Projenin kaynak kodları, sürdürülebilirlik ilkeleri gözetilerek modüler bi
 
 ---
 
-## 6. Gelecek Güncellemeler ve Veri Entegrasyon Stratejisi
+## 6. Proje Yol Haritası ve İlerleme Durumu: "Önce Güvenlik, Sonra Şov"
 
-Projenin bir sonraki fazında, veri yönetimi için "Statik Veri, Dinamik Etkileşim" (Static Data, Dynamic Interaction) mimarisi benimsenmiştir. Bu yapı, hem yüksek performans hem de çevrimdışı çalışma yeteneği sunmaktadır.
+Projenin geliştirilme sürecinde, bitirme projesi teslim kuralları ve risk yönetimi göz önüne alınarak **"Hibrit / Aşamalı"** bir strateji benimsenmiştir. Bu strateji, projenin her aşamada "sunulabilir" ve "çalışır" durumda olmasını garanti altına alır.
 
-### 6.1. Veri Kaynağı ve Aktarım Döngüsü (MS SQL to App)
-Verilerin ana kaynağı (Single Source of Truth) olarak **Microsoft SQL Server** kullanılmaya devam edilecektir.
-*   **Veri Yönetimi:** Mağaza koordinatları, kampanya metinleri ve geofence yarıçapları SQL sunucusu üzerinde merkezi olarak yönetilir.
-*   **Entegrasyon Yöntemi (Build-Time Integration):** Uygulama dağıtıma çıkılmadan önce, SQL veritabanındaki güncel veriler bir "Export Script" aracılığıyla **JSON** formatına dönüştürülür ve proje kaynak kodlarına (`src/data/stores.json`) dahil edilir. Bu sayede veritabanı güvenliği riske atılmadan veriler güvenli bir şekilde uygulamaya taşınır.
+### AŞAMA 1: Güvenli Liman (Tamamlandı - Mevcut Durum)
+Uygulamanın en kararlı ve risksiz versiyonudur. İstemci taraflı (Client-Side) mimari ile %100 performans hedeflenmiştir.
 
-### 6.2. İstemci Taraflı Konum İşleme (Client-Side Geofencing)
-Sunucu tabanlı (Server-Side) sorgulamaların getirdiği ağ gecikmesini (latency) ortadan kaldırmak için coğrafi hesaplamalar kullanıcının cihazında yapılır.
-*   **Algoritma:** Uygulama açılışta güncel kampanya/mağaza listesini (JSON) belleğe yükler. Kullanıcı hareket ettikçe, cihazın işlemcisi (CPU) kullanılarak anlık konum ile mağazalar arasındaki mesafe sürekli hesaplanır (Haversine Formülü).
-*   **Çevrimdışı Yetenek:** Veriler cihazda yerel olarak saklandığı için, kullanıcı internet kapsama alanı dışında olsa dahi ( metro, bodrum kat vb.) mağazaya yaklaştığında bildirim alabilir.
+**Bu Aşamada Geliştirilebilecek Ek Özellikler:**
+Mevcut mimari (Aşama 1) bozulmadan şu özellikler eklenebilir:
+*   **PWA Kurulumu:** Kullanıcıya "Ana Ekrana Ekle" butonu sunularak uygulamanın yerel bir uygulama gibi yüklenmesi.
+*   **Gelişmiş Filtreleme:** İstemci tarafında (Client-side) çalışan, renk, beden ve fiyat aralığına göre anlık filtreleme.
+*   **Karanlık Mod (Dark Mode):** Tailwind CSS altyapısı kullanılarak sisteme duyarlı tema desteği.
+*   **Yapay Zeka (Mock AI):** "Bunu beğenenler bunu da aldı" gibi senaryolar için daha akıllı sahte veri setleri oluşturulması.
 
-### 6.3. Hibrit Mimari Avantajları
-Bu mimari yaklaşım ile:
-1.  **Sıfır Sunucu Maliyeti:** Canlı bir API sunucusu barındırma ve bakım maliyeti ortadan kalkar.
-2.  **Yüksek Performans:** Ağ isteği (Network Request) olmadığı için bildirimler gecikmesiz çalışır.
-3.  **Güvenlik:** Veritabanı internete açık olmadığı için siber saldırı yüzeyi minimize edilir.
+### AŞAMA 2: Bulut Entegrasyonu (Orta Vade - Bonus Hedef)
+Projenin "Statik" yapısından "Dinamik" yapıya geçiş evresidir. Bu aşamada sunucu maliyeti olmadan **Firebase (Backend-as-a-Service)** teknolojileri entegre edilir.
+
+**Detaylı Plan:**
+1.  **Authentication (Kimlik Doğrulama):** Mevcut sahte giriş yerine, **Firebase Auth** kullanılarak Google, Apple ve E-posta ile gerçek kullanıcı yönetimi.
+2.  **Firestore (Gerçek Zamanlı Veritabanı):**
+    *   Sepet ve Favori verilerinin buluta taşınarak, kullanıcının mobilden eklediği ürünü web tarayıcısında da görmesi (Cihazlar arası senkronizasyon).
+    *   Basit stok takibi mantığının veritabanına işlenmesi.
+3.  **Hosting:** GitHub Pages yerine Firebase Hosting kullanılarak daha hızlı CDN (Content Delivery Network) desteği.
+
+### AŞAMA 3: Kurumsal Ölçekleme (Uzun Vade - Gelecek Vizyonu)
+Projenin bir bitirme ödevinden çıkıp, ticari bir "Startup" ürününe dönüşmesi durumunda uygulanacak mimari değişikliklerdir.
+
+**Detaylı Dönüşüm Planı:**
+1.  **Microservices Mimarisi:**
+    *   Tek parça (Monolithic) yapı yerine; Ürün Servisi, Sipariş Servisi, Bildirim Servisi gibi ayrıştırılmış **Node.js/Go** servisleri.
+    *   Bu servislerin **Docker** konteynerleri içinde izole edilmesi ve **Kubernetes** ile yönetilmesi.
+2.  **Veritabanı Dönüşümü:**
+    *   İlişkisel verilerin (Sipariş-Fatura) tutarlılığı için **PostgreSQL** gibi güçlü bir SQL veritabanına geçiş.
+    *   Ürün katalogları ve loglama için **MongoDB** veya **Elasticsearch** kullanımı.
+3.  **Ödeme ve Lojistik:**
+    *   **Iyzico / Stripe** API entegrasyonu ile gerçek kredi kartı işlemleri.
+    *   Kargo firmalarının API'ları ile sipariş takip entegrasyonu.
+4.  **AI/ML Destekli Öneri Motoru:**
+    *   Kullanıcının gezinme geçmişini analiz eden ve Python (TensorFlow/PyTorch) tabanlı çalışan gerçek bir öneri algoritması entegrasyonu.
 
 ---
-**Rapor Tarihi:** 18 Aralık 2025
-**Geliştirici:** Antigravity AI Takımı
+**Rapor Tarihi:** 2 Ocak 2026
+**İlk Rapor Tarihi:** 18 Aralık 2025

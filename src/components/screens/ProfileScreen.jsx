@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Award, Zap, Settings, Star, Gift, ChevronRight, MoreHorizontal, User, ToggleLeft, ToggleRight, X, AlertTriangle } from 'lucide-react';
+import { Award, Zap, Settings, Star, Gift, ChevronRight, MoreHorizontal, User, ToggleLeft, ToggleRight, X, AlertTriangle, ShoppingBag, Heart, MapPin, CreditCard, HelpCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from '../../context/UserContext';
 import { useLocation } from '../../context/LocationContext';
@@ -11,7 +11,8 @@ export default function ProfileScreen({ notificationsEnabled, setNotificationsEn
         address: userAddress,
         locationEnabled,
         setLocationEnabled,
-        requestPermission: requestLocationPermission
+        requestPermission: requestLocationPermission,
+        isLoading
     } = useLocation();
 
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -116,6 +117,9 @@ export default function ProfileScreen({ notificationsEnabled, setNotificationsEn
                                 className="h-full bg-gradient-to-r from-yellow-500 to-yellow-300 rounded-full"
                             />
                         </div>
+                        <p className="text-[10px] text-gray-400 mt-2 text-center font-medium opacity-80">
+                            🚀 Bir sonraki seviye için <span className="text-yellow-400 font-bold">2 sipariş</span> daha ver!
+                        </p>
                     </div>
                 </div>
             </div>
@@ -123,7 +127,7 @@ export default function ProfileScreen({ notificationsEnabled, setNotificationsEn
             {/* Content Sections */}
             <div className="px-6 -mt-6 relative z-30 space-y-4">
                 {/* Active Coupons */}
-                <div className="bg-white rounded-2xl p-4 shadow-sm flex items-center gap-4">
+                <div className="bg-white rounded-2xl p-4 shadow-sm flex items-center gap-4 cursor-pointer hover:bg-gray-50 transition-colors">
                     <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600">
                         <Gift size={24} />
                     </div>
@@ -134,12 +138,45 @@ export default function ProfileScreen({ notificationsEnabled, setNotificationsEn
                     <ChevronRight size={20} className="text-gray-300" />
                 </div>
 
-                {/* Order Analysis */}
+                {/* New Menu Items */}
+                <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                    {[
+                        { icon: ShoppingBag, label: 'Siparişlerim', sub: 'Son sipariş: 2 gün önce', color: 'text-blue-600', bg: 'bg-blue-50' },
+                        { icon: Heart, label: 'Favorilerim', sub: '12 kayıtlı ürün', color: 'text-red-500', bg: 'bg-red-50' },
+                        { icon: MapPin, label: 'Adreslerim', sub: 'Ev, İş', color: 'text-orange-500', bg: 'bg-orange-50' },
+                        { icon: CreditCard, label: 'Ödeme Yöntemleri', sub: 'Mastercard •••• 1234', color: 'text-green-600', bg: 'bg-green-50' },
+                    ].map((item, index) => (
+                        <div key={index} className="flex items-center gap-4 p-4 border-b border-gray-50 last:border-0 hover:bg-gray-50 cursor-pointer transition-colors">
+                            <div className={`w-10 h-10 ${item.bg} rounded-full flex items-center justify-center ${item.color}`}>
+                                <item.icon size={20} />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="font-bold text-gray-900 text-sm">{item.label}</h3>
+                                <p className="text-[10px] text-gray-400">{item.sub}</p>
+                            </div>
+                            <ChevronRight size={18} className="text-gray-300" />
+                        </div>
+                    ))}
+                </div>
+
+                {/* Help Section */}
+                <div className="bg-white rounded-2xl p-4 shadow-sm flex items-center gap-4 cursor-pointer hover:bg-gray-50 transition-colors">
+                    <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-600">
+                        <HelpCircle size={20} />
+                    </div>
+                    <div className="flex-1">
+                        <h3 className="font-bold text-gray-900 text-sm">Yardım & Destek</h3>
+                        <p className="text-xs text-gray-500">Sıkça sorulan sorular</p>
+                    </div>
+                    <ChevronRight size={18} className="text-gray-300" />
+                </div>
+
+                {/* Order Analysis (Keep existing) */}
                 <div className="bg-white rounded-2xl p-6 shadow-sm">
-                    <h3 className="font-bold text-gray-900 mb-4">Sipariş Analizi</h3>
-                    <div className="flex gap-2">
-                        {['Smart Casual', 'L Beden', 'Nişantaşı'].map((tag, i) => (
-                            <span key={i} className="px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg text-xs font-medium text-gray-600">
+                    <h3 className="font-bold text-gray-900 mb-4 text-sm">Alışveriş Analizin</h3>
+                    <div className="flex flex-wrap gap-2">
+                        {['Smart Casual', 'L Beden', 'Nişantaşı', 'Spor Giyim', 'Siyah'].map((tag, i) => (
+                            <span key={i} className="px-3 py-1 bg-gray-50 border border-gray-100 rounded-lg text-[10px] font-bold text-gray-500 uppercase tracking-wide">
                                 {tag}
                             </span>
                         ))}
@@ -195,7 +232,9 @@ export default function ProfileScreen({ notificationsEnabled, setNotificationsEn
                                             <p className="text-xs text-gray-500">{locationEnabled ? 'Açık' : 'Kapalı'}</p>
                                         </div>
                                     </div>
-                                    {locationEnabled ? (
+                                    {isLoading ? (
+                                        <div className="w-8 h-8 rounded-full border-2 border-indigo-200 border-t-indigo-600 animate-spin" />
+                                    ) : locationEnabled ? (
                                         <ToggleRight size={32} className="text-green-500" />
                                     ) : (
                                         <ToggleLeft size={32} className="text-gray-400" />
